@@ -19,6 +19,13 @@ class NaiApiEndpointService {
   String mainUrl(String endpoint) => _current.mainUrl(endpoint);
 
   String imageUrl(String endpoint) => _current.imageUrl(endpoint);
+
+  String imageGenerationUrl() => _current.imageGenerationUrl();
+
+  bool get supportsSubscriptionValidation =>
+      _current.supportsSubscriptionValidation;
+
+  bool get supportsImageStream => _current.supportsImageStream;
 }
 
 final naiApiEndpointServiceProvider = Provider<NaiApiEndpointService>(

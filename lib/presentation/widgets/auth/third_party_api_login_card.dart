@@ -135,7 +135,7 @@ class _ThirdPartyApiLoginCardState
           ),
           const SizedBox(height: 12),
           Text(
-            '第三方站点需兼容 NovelAI 的 /user/subscription 与图像生成相关 API；Token 将按 Bearer 方式发送。',
+            'Token 将按 Bearer 方式原样发送。Chami 端点请输入 http://chami.yyqzx.com；完整生图地址为 /image/chami。',
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),

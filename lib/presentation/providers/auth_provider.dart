@@ -228,21 +228,24 @@ class AuthNotifier extends _$AuthNotifier {
         if (matchedAccount != null) {
           final endpoint =
               accountManagerNotifier.getAccountApiEndpoint(matchedAccount.id);
-          final subscriptionInfo = await apiService
-              .validateToken(
-            token,
-            endpoint: endpoint,
-            allowAnyTokenFormat: endpoint.isThirdParty,
-          )
-              .timeout(
-            const Duration(seconds: 5),
-            onTimeout: () {
-              throw DioException(
-                type: DioExceptionType.connectionTimeout,
-                requestOptions: RequestOptions(path: '/user/subscription'),
-              );
-            },
-          );
+          final subscriptionInfo = endpoint.supportsSubscriptionValidation
+              ? await apiService
+                  .validateToken(
+                    token,
+                    endpoint: endpoint,
+                    allowAnyTokenFormat: endpoint.isThirdParty,
+                  )
+                  .timeout(
+                    const Duration(seconds: 5),
+                    onTimeout: () {
+                      throw DioException(
+                        type: DioExceptionType.connectionTimeout,
+                        requestOptions:
+                            RequestOptions(path: '/user/subscription'),
+                      );
+                    },
+                  )
+              : <String, dynamic>{};
 
           endpointService.setCurrent(endpoint);
           accountManagerNotifier.updateLastUsed(matchedAccount.id);
@@ -563,15 +566,18 @@ class AuthNotifier extends _$AuthNotifier {
       final apiService = ref.read(naiAuthApiServiceProvider);
       final storage = ref.read(secureStorageServiceProvider);
 
-      AppLogger.auth(
-        'Validating third-party token at ${apiEndpoint.mainBaseUrl}...',
-      );
-      final subscriptionInfo = await apiService.validateToken(
-        normalizedToken,
-        endpoint: apiEndpoint,
-        allowAnyTokenFormat: true,
-      );
-      AppLogger.auth('Third-party token validation successful');
+      final subscriptionInfo = apiEndpoint.supportsSubscriptionValidation
+          ? await apiService.validateToken(
+              normalizedToken,
+              endpoint: apiEndpoint,
+              allowAnyTokenFormat: true,
+            )
+          : <String, dynamic>{};
+      if (apiEndpoint.supportsSubscriptionValidation) {
+        AppLogger.auth('Third-party token validation successful');
+      } else {
+        AppLogger.auth('Skipping subscription validation for relay endpoint');
+      }
 
       await storage.saveAuth(
         accessToken: normalizedToken,

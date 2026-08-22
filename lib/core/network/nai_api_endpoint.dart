@@ -53,6 +53,29 @@ class NaiApiEndpointConfig {
 
   bool get isThirdParty => !isOfficial;
 
+  /// Chami forwards the same NovelAI payload through a single endpoint and
+  /// does not expose the regular subscription or streaming endpoints.
+  bool get isChamiRelay {
+    final mainHost = Uri.tryParse(mainBaseUrl)?.host.toLowerCase();
+    final imageHost = Uri.tryParse(imageBaseUrl)?.host.toLowerCase();
+    return mainHost == 'chami.yyqzx.com' || imageHost == 'chami.yyqzx.com';
+  }
+
+  bool get supportsSubscriptionValidation => !isChamiRelay;
+
+  bool get supportsImageStream => !isChamiRelay;
+
+  String imageGenerationUrl() {
+    if (!isChamiRelay) {
+      return imageUrl(ApiConstants.generateImageEndpoint);
+    }
+
+    if (imageBaseUrl.endsWith('/image/chami')) {
+      return imageBaseUrl;
+    }
+    return _appendEndpoint(imageBaseUrl, '/image/chami');
+  }
+
   String mainUrl(String endpoint) => _appendEndpoint(mainBaseUrl, endpoint);
 
   String imageUrl(String endpoint) => _appendEndpoint(imageBaseUrl, endpoint);

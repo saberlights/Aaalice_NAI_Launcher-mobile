@@ -264,7 +264,7 @@ class NAIImageGenerationApiService {
 
       // 5. 发送请求
       final response = await _dio.post(
-        _endpointService.imageUrl(ApiConstants.generateImageEndpoint),
+        _endpointService.imageGenerationUrl(),
         data: requestData,
         cancelToken: cancelToken,
         onReceiveProgress: onProgress,
@@ -343,6 +343,15 @@ class NAIImageGenerationApiService {
     double minimumContextMegaPixels = 88.0,
     Rect? focusedSelectionRect,
   }) {
+    if (!_endpointService.supportsImageStream) {
+      return _generateNonStreamingFallback(
+        params,
+        focusedInpaintEnabled: focusedInpaintEnabled,
+        minimumContextMegaPixels: minimumContextMegaPixels,
+        focusedSelectionRect: focusedSelectionRect,
+      );
+    }
+
     final cancelToken = CancelToken();
     _currentCancelToken = cancelToken;
 
@@ -353,6 +362,27 @@ class NAIImageGenerationApiService {
       minimumContextMegaPixels: minimumContextMegaPixels,
       focusedSelectionRect: focusedSelectionRect,
     );
+  }
+
+  Stream<ImageStreamChunk> _generateNonStreamingFallback(
+    ImageParams params, {
+    bool focusedInpaintEnabled = false,
+    double minimumContextMegaPixels = 88.0,
+    Rect? focusedSelectionRect,
+  }) async* {
+    try {
+      final (images, _) = await generateImage(
+        params,
+        focusedInpaintEnabled: focusedInpaintEnabled,
+        minimumContextMegaPixels: minimumContextMegaPixels,
+        focusedSelectionRect: focusedSelectionRect,
+      );
+      for (var index = 0; index < images.length; index++) {
+        yield ImageStreamChunk.complete(images[index], sampleIndex: index);
+      }
+    } catch (error) {
+      yield ImageStreamChunk.error(error.toString());
+    }
   }
 
   Stream<ImageStreamChunk> _generateImageStreamWithToken(
