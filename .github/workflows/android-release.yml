@@ -45,7 +45,24 @@ jobs:
         run: dart run build_runner build --delete-conflicting-outputs
 
       - name: Build release APK
-        run: flutter build apk --release
+        id: build_apk
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          flutter build apk --release 2>&1 | tee build-apk.log
+
+      - name: Report APK build failure
+        if: steps.build_apk.outcome == 'failure'
+        run: |
+          error_message="$( (grep -E 'FAILURE:|Error:|ERROR:|What went wrong|Exception' build-apk.log || true) | tail -n 20 | tr '\n' ' ' )"
+          if [ -z "$error_message" ]; then
+            error_message='flutter build apk failed; inspect the build log'
+          fi
+          error_message="${error_message//'%'/'%25'}"
+          error_message="${error_message//$'\n'/'%0A'}"
+          error_message="${error_message//$'\r'/'%0D'}"
+          echo "::error file=.github/workflows/android-release.yml,line=50::$error_message"
+          exit 1
 
       - name: Verify APK
         run: test -s build/app/outputs/flutter-apk/app-release.apk
