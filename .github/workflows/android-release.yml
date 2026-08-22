@@ -41,6 +41,36 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Prepare mobile databases
+        run: python3 tool/database/prepare_mobile_databases.py
+
+      - name: Verify database assets
+        run: |
+          python3 - <<'PY'
+          import sqlite3
+          from pathlib import Path
+
+          expected = {
+              Path('assets/databases/translation.db'): {'tags', 'translations'},
+              Path('assets/databases/cooccurrence.db'): {'cooccurrences'},
+          }
+          for path, tables in expected.items():
+              with path.open('rb') as handle:
+                  assert handle.read(16) == b'SQLite format 3\x00', path
+              connection = sqlite3.connect(path)
+              try:
+                  actual = {
+                      row[0]
+                      for row in connection.execute(
+                          "SELECT name FROM sqlite_master WHERE type='table'"
+                      )
+                  }
+                  assert tables <= actual, (path, tables - actual)
+                  assert connection.execute('PRAGMA integrity_check').fetchone()[0] == 'ok'
+              finally:
+                  connection.close()
+          PY
+
       - name: Generate Dart sources
         run: dart run build_runner build --delete-conflicting-outputs
 

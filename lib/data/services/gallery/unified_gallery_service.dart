@@ -311,10 +311,17 @@ class LocalGalleryServiceImpl implements LocalGalleryService {
 
     final rootDir = Directory(rootPath);
     if (!await rootDir.exists()) {
-      throw GalleryPermissionDeniedException(
-        path: rootPath,
-        message: 'Gallery folder does not exist: $rootPath',
-      );
+      try {
+        // A fresh install has no gallery directory yet. Creating it makes an
+        // empty gallery a valid state and also gives the save flow a target.
+        await rootDir.create(recursive: true);
+      } on FileSystemException catch (error) {
+        throw GalleryPermissionDeniedException(
+          path: rootPath,
+          message: 'Gallery folder is not accessible: $rootPath',
+          cause: error,
+        );
+      }
     }
 
     var files = <File>[];
