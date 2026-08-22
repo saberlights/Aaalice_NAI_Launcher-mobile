@@ -130,10 +130,10 @@ class UpdateCheckService {
   final PackageInfo _packageInfo;
 
   /// 默认仓库所有者
-  static const String defaultOwner = 'Aaalice233';
+  static const String defaultOwner = 'saberlights';
 
   /// 默认仓库名称
-  static const String defaultRepo = 'Aaalice_NAI_Launcher';
+  static const String defaultRepo = 'Aaalice_NAI_Launcher-mobile';
 
   /// 默认检查间隔（24小时）
   static const Duration defaultCheckInterval = Duration(hours: 24);

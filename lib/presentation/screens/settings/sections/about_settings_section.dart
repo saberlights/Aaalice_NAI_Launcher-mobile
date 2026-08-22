@@ -115,7 +115,7 @@ class _AboutSettingsSectionState extends ConsumerState<AboutSettingsSection> {
             trailing: const Icon(Icons.open_in_new),
             onTap: () async {
               final uri = Uri.parse(
-                'https://github.com/Aaalice233/Aaalice_NAI_Launcher',
+                'https://github.com/saberlights/Aaalice_NAI_Launcher-mobile',
               );
               if (await canLaunchUrl(uri)) {
                 await launchUrl(uri, mode: LaunchMode.externalApplication);
