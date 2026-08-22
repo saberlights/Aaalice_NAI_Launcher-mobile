@@ -74,6 +74,9 @@ jobs:
       - name: Generate Dart sources
         run: dart run build_runner build --delete-conflicting-outputs
 
+      - name: Verify version comparison
+        run: dart run tool/testing/version_comparator_check.dart
+
       - name: Build release APK
         id: build_apk
         continue-on-error: true

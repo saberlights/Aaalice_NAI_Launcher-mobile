@@ -44,7 +44,7 @@ class GitHubApiService {
     required String owner,
     required String repo,
     required String currentVersion,
-    String platform = 'windows',
+    String platform = 'android',
   }) async {
     try {
       final response = await _dio.get<Map<String, dynamic>>(
@@ -147,20 +147,7 @@ class GitHubApiService {
 
   /// 比较版本号，检查新版本是否比当前版本新
   bool _isNewerVersion(String newVersion, String currentVersion) {
-    try {
-      final newParts = newVersion.split('.').map(int.parse).toList();
-      final currentParts = currentVersion.split('.').map(int.parse).toList();
-      
-      for (var i = 0; i < newParts.length && i < currentParts.length; i++) {
-        if (newParts[i] > currentParts[i]) return true;
-        if (newParts[i] < currentParts[i]) return false;
-      }
-      
-      return newParts.length > currentParts.length;
-    } catch (_) {
-      // 如果解析失败，默认返回 false
-      return false;
-    }
+    return VersionInfoComparator.isNewer(newVersion, currentVersion);
   }
 }
 

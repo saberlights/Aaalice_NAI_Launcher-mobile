@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 part 'version_info.freezed.dart';
 part 'version_info.g.dart';
@@ -58,19 +59,9 @@ class VersionInfoComparator {
   /// 比较两个版本号，检查新版本是否比当前版本新
   static bool isNewer(String newVersion, String currentVersion) {
     try {
-      // 清理 v 前缀
-      final cleanNewVersion = _cleanVersion(newVersion);
-      final cleanCurrentVersion = _cleanVersion(currentVersion);
-
-      final newParts = cleanNewVersion.split('.').map(int.parse).toList();
-      final currentParts = cleanCurrentVersion.split('.').map(int.parse).toList();
-
-      for (var i = 0; i < newParts.length && i < currentParts.length; i++) {
-        if (newParts[i] > currentParts[i]) return true;
-        if (newParts[i] < currentParts[i]) return false;
-      }
-
-      return newParts.length > currentParts.length;
+      final parsedNew = Version.parse(_cleanVersion(newVersion));
+      final parsedCurrent = Version.parse(_cleanVersion(currentVersion));
+      return parsedNew.compareTo(parsedCurrent) > 0;
     } catch (_) {
       return false;
     }
